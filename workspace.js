@@ -20,3 +20,6 @@ document.addEventListener('click',e=>{
  const lab=e.target.closest('[data-lab]');if(lab){saveEditor();workspaceTab='lesson'}
  const level=e.target.closest('[data-level]');if(level)workspaceTab='lesson';
 });
+
+// Capture lab navigation before the bootcamp's own click handler re-renders.
+document.addEventListener('click',event=>{if(event.target.closest('[data-lab]')){saveEditor();workspaceTab='lesson'}},true);
