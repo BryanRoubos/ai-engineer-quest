@@ -1,0 +1,27 @@
+name: Reproducible job API checks
+on:
+  push:
+    paths:
+      - 'projects/job-api/**'
+      - '.github/workflows/job-api.yml'
+  pull_request:
+    paths:
+      - 'projects/job-api/**'
+      - '.github/workflows/job-api.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/job-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: docker build -t ai-job-api:test .
