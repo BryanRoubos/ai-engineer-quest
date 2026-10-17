@@ -37,9 +37,9 @@ jobs:
         run: |
           echo "Checking published site: $SITE_URL"
           for attempt in $(seq 1 18); do
-            if curl -fsSL --max-time 15 "$SITE_URL" | grep -Fq 'playground.js?v=20261018-7' &&
-               curl -fsSL --max-time 15 "${SITE_URL%/}/playground.js?v=20261018-7" | grep -Fq 'CODING_EXERCISES'; then
-              echo "Verified published HTML and playground script."
+            if curl -fsSL --max-time 15 "$SITE_URL" | grep -Fq 'guided-builds.js?v=20261018-10' &&
+               curl -fsSL --max-time 15 "${SITE_URL%/}/guided-builds.js?v=20261018-10" | grep -Fq 'GUIDED_BUILDS'; then
+              echo "Verified published HTML and guided build script."
               exit 0
             fi
             echo "Site not updated yet. Retry $attempt/18..."
