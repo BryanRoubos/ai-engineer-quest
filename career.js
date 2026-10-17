@@ -31,9 +31,31 @@ const READINESS_CHECKS=[
 function readinessSection(){
 const flags=s.readiness||{};
 const n=READINESS_CHECKS.filter(x=>flags[x.title]).length;
-return '<section class="panel" style="margin-top:20px"><div class="eyebrow">JUNIOR ENGINEER GRADUATION CRITERIA</div><h2 style="margin:9px 0">What you must be able to demonstrate</h2><p class="muted">These are self-assessed outcomes, separate from XP. Complete them only when you have evidence from working projects.</p><div class="flex"><b>'+n+' of '+READINESS_CHECKS.length+' demonstrated</b></div><div class="bar" style="margin:12px 0 18px"><span style="width:'+(n/READINESS_CHECKS.length*100)+'%"></span></div><div class="stack">'+READINESS_CHECKS.map((x,i)=>'<div class="quest"><input type="checkbox" data-readiness="'+i+'" '+(flags[x.title]?'checked':'')+' aria-label="Demonstrated '+x.title+'"><div style="flex:1"><b>'+x.title+'</b><p class="small muted" style="margin:5px 0">'+x.description+'</p><button class="btn alt" data-level="'+x.level+'">Go to Level '+x.level+' →</button></div></div>').join('')+'</div><p class="small muted">Not a certification or hiring guarantee. Keep evidence in your project repositories.</p></section>';
+return '<section class="panel" style="margin-top:20px"><div class="eyebrow">JUNIOR ENGINEER GRADUATION CRITERIA</div><h2 style="margin:9px 0">What you must be able to demonstrate</h2><p class="muted">These are self-assessed outcomes, separate from XP. Complete them only when you have evidence from working projects.</p><div class="flex"><b>'+n+' of '+READINESS_CHECKS.length+' demonstrated</b></div><div class="bar" style="margin:12px 0 18px"><span style="width:'+(n/READINESS_CHECKS.length*100)+'%"></span></div><div class="stack">'+READINESS_CHECKS.map((x,i)=>'<div class="quest"><input type="checkbox" data-readiness="'+i+'" '+(flags[x.title]?'checked':'')+' aria-label="Demonstrated '+x.title+'"><div style="flex:1"><b>'+x.title+'</b><p class="small muted" style="margin:5px 0">'+x.description+'</p>'+readinessAdvice(i)+'<button class="btn alt" data-level="'+x.level+'">Go to Level '+x.level+' →</button></div></div>').join('')+'</div><p class="small muted">Not a certification or hiring guarantee. Keep evidence in your project repositories.</p></section>';
 }
 document.addEventListener('change',event=>{const x=event.target.closest('[data-readiness]');if(!x)return;const i=Number(x.dataset.readiness);if(!READINESS_CHECKS[i])return;s.readiness||={};s.readiness[READINESS_CHECKS[i].title]=x.checked;save();render()});
+
+
+const READINESS_GUIDES=[
+{build:"From a clean checkout, launch a FastAPI or Go API with at least two useful endpoints, input validation, role checks, PostgreSQL migrations, and a passing CI pipeline.",prove:"Include a README quickstart, API example requests/responses, tests for success/invalid input/forbidden access, and a successful CI run.",where:"Level 1, labs 1–5"},
+{build:"Connect a real inference endpoint; build retrieval over your own documents; return cited results and a clear fallback when the model or retrieval fails.",prove:"Commit an evaluation dataset, measured pass/fail examples, citation samples, and an error-handling demonstration.",where:"Level 3, labs 1–5"},
+{build:"Build an image, deploy the API in a local kind cluster, configure a Service, readiness/liveness probes, resource requests, namespace permissions and versioned manifests.",prove:"Provide Dockerfile, Kubernetes YAML, health-check output, kubectl get/describe output and recovery after deleting one pod.",where:"Level 4, labs 1–5"},
+{build:"Intentionally stop the model backend, deny a permission, and trigger an overloaded or unhealthy service. Diagnose each with commands, logs and metrics, then recover.",prove:"Write three short incident notes: symptoms, exact diagnostics, root cause, correction, and before/after evidence.",where:"Level 6, labs 3–5"},
+{build:"Publish two focused projects: one production-style backend and one AI platform or integrated serving system. Make both independently reproducible.",prove:"Link repository commits, setup instructions, test logs, architecture diagram, benchmark results, screenshots/demo and known limitations.",where:"Level 8, labs 1–5"},
+{build:"Work on a team-owned feature or contribute reviewed PRs. Ask collaborators for review and document your own changes and their impact.",prove:"Include links to your PRs, review comments, issues, decision notes and a short honest statement of your contribution.",where:"Level 8 and your team project"}
+];
+function readinessAdvice(i){
+const x=READINESS_GUIDES[i];
+return '<div class="small" style="margin:9px 0"><b>Build:</b> '+x.build+'</div><div class="small" style="margin:8px 0"><b>Evidence:</b> '+x.prove+'</div><div class="small muted">'+x.where+'</div>';
+}
+const baseCourseDetail=detail;
+detail=function(){
+ let html=baseCourseDetail();
+ if(workspaceTab!=='check')return html;
+ const related=READINESS_CHECKS.map((x,i)=>({x,i})).filter(y=>y.x.level===current);
+ if(!related.length)return html;
+ return html+'<section class="panel" style="margin-top:16px"><div class="eyebrow">JOB-READINESS MILESTONES</div><h3>Turn this level into hiring evidence</h3><p class="small muted">The lesson checkbox tracks study progress. These additional outcomes require working evidence.</p>'+related.map(({x,i})=>'<div class="focus-target"><label class="quest"><input type="checkbox" data-readiness="'+i+'" '+((s.readiness||{})[x.title]?'checked':'')+'><span><b>'+x.title+'</b><small>'+x.description+'</small></span></label>'+readinessAdvice(i)+'</div>').join('')+'<button class="btn alt" data-nav="career">View all career outcomes →</button></section>';
+};
 
 const baseRender=render;
 render=function(){if(page==='career'){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav==='career'));document.querySelector('#content').innerHTML=careerPage();updateStatusBar()}else{baseRender()}};
