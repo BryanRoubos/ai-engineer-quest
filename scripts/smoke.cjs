@@ -1,6 +1,6 @@
 const fs=require('fs'),vm=require('vm');
 const index=fs.readFileSync('index.html','utf8');
-for (const file of ['app.js','bootcamp.js','playground.js']) {
+for (const file of ['app.js','bootcamp.js','playground.js','workspace.js']) {
   new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});
   if(!index.includes(file)) throw Error('Missing script '+file);
 }
@@ -13,13 +13,13 @@ const context={
   console
 };
 vm.createContext(context);
-for(const f of ['app.js','bootcamp.js','playground.js'])vm.runInContext(fs.readFileSync(f,'utf8'),context,{filename:f});
+for(const f of ['app.js','bootcamp.js','playground.js','workspace.js'])vm.runInContext(fs.readFileSync(f,'utf8'),context,{filename:f});
 vm.runInContext('go(1)',context);
 let html=e['#content'].innerHTML;
-for(const marker of ['Step 1','Run + Grade Tests','Check repository structure','Resources for this specific lab'])if(!html.includes(marker))throw Error('Level 1 missing '+marker);
+for(const marker of ['focus-sidebar','data-workspace-tab','YOUR MISSION','FINISH LINE'])if(!html.includes(marker))throw Error('Level 1 missing '+marker);
 vm.runInContext('go(8)',context);
 html=e['#content'].innerHTML;
-if(!html.includes('Run + Grade Tests'))throw Error('Level 8 playground missing');
+if(!html.includes('data-workspace-tab'))throw Error('Level 8 lesson workspace missing');
 const js=fs.readFileSync('playground.js','utf8');
 const exercises=JSON.parse(js.match(/^const CODING_EXERCISES=(\[.*?\]);\n/s)[1]);
 if(exercises.length!==40)throw Error('Expected 40 coding challenges');
