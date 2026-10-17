@@ -1,23 +1,36 @@
-# Architect Quest ✦
+# AI Engineer Quest
 
-Interactive, game-style roadmap for becoming an **AI Systems Architect**.
+A practical, project-based learning bootcamp for developing the skills needed for **junior AI engineering**, with a focus on backend development and AI infrastructure.
 
-**Features:** 8 levels, 40 quests, boss challenges, XP, ranks, achievements, learning resources, per-level notes, and browser-local progress with JSON backup and restore.
+The goal is to learn by building: Python and APIs, databases, AI/ML fundamentals, LLM applications, Docker, Kubernetes, deployment, debugging, monitoring, and system design. This is a learning roadmap, **not** a claim of professional expertise or a guaranteed job outcome.
+
+## What's included
+
+- Eight learning levels with 40 guided lab assignments and step-by-step explanations.
+- An interactive progress tracker with local notes and browser-based progress.
+- A [reproducible FastAPI project](projects/job-api/README.md), including tests and a Dockerfile.
+- [Practical debugging exercises](DEBUGGING_LABS.md) and [technical interview practice](INTERVIEW_PRACTICE.md).
+- [Graduation criteria](GRADUATION_CRITERIA.md) focused on demonstrable junior-engineering skills.
+- [Job-market context](JOB_MARKET.md) explaining the skills the learning path is targeting.
+
+Some exercises are guided starter implementations rather than complete production systems. Progress is self-reported.
+
+## Open the bootcamp
+
+https://bryanroubos.github.io/ai-architect-quest/
 
 ## Run locally
 
-Open `index.html` in a browser, or run `python -m http.server 8000` and visit http://localhost:8000.
+Open `index.html` or run `python -m http.server 8000` from the repository root, then visit http://localhost:8000.
 
-## GitHub Pages
+## Deployment
 
-This is a dependency-free static site. The workflow in `.github/workflows/pages.yml` deploys it on changes to `main`. In repository **Settings → Pages → Build and deployment**, select **GitHub Actions** once if Pages is not enabled.
+GitHub Pages deploys through `.github/workflows/pages.yml` on pushes to `main`. In repository settings, configure Pages to use GitHub Actions if needed.
 
-Pages URL: https://bryanroubos.github.io/ai-architect-quest/
+## Progress and privacy
 
-## Privacy
+Progress and notes are stored locally in your browser. There is no user account or learning-progress server. Export a JSON backup before switching devices or browsers.
 
-Your completed quests and notes are saved in localStorage on your device; there is no backend or user account. Export your backup through the Field Guide when switching browsers or devices.
+## Longer-term direction
 
-## Roadmap philosophy
-
-Project-first learning, real architecture trade-offs, and flexible pacing. This is an educational roadmap, not an industry certification or a promise of employment.
+The initial focus is **junior AI engineering**. Platform engineering and systems architecture are possible future specializations built on hands-on experience.
