@@ -30,3 +30,20 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify live GitHub Pages output
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          echo "Checking published site: $SITE_URL"
+          for attempt in $(seq 1 18); do
+            if curl -fsSL --max-time 15 "$SITE_URL" | grep -Fq 'playground.js?v=20261018-7' &&
+               curl -fsSL --max-time 15 "${SITE_URL%/}/playground.js?v=20261018-7" | grep -Fq 'CODING_EXERCISES'; then
+              echo "Verified published HTML and playground script."
+              exit 0
+            fi
+            echo "Site not updated yet. Retry $attempt/18..."
+            sleep 10
+          done
+          echo "::error::Published Pages content could not be verified."
+          exit 1
