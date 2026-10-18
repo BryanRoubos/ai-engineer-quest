@@ -1,85 +1,118 @@
-# Project 1 — AI Job API (complete runnable example)
+# Level 01 — Software Engineering Foundations: your runnable application
 
-A beginner-friendly backend service. It **does not call an AI model yet**. This deliberate first stage teaches the HTTP contract, validation, testing, containers and debugging that later AI systems depend on.
+This is **one real project shared across all five lessons**. You build a persistent, authenticated Python job API, test it, run migrations, and deploy it in Docker. It queues job records; it does **not** run AI models yet.
 
-## Windows PowerShell
+## Before starting on Windows
+
+Install **Git**, **Python 3.11 or 3.12**, **VS Code**, and **Docker Desktop** (Docker is used in lessons 3 and 5).
+
+Open PowerShell in the repository root. You can clone the project with:
 
 ```powershell
-cd projects/job-api
+git clone https://github.com/BryanRoubos/ai-engineer-quest.git
+cd ai-engineer-quest/projects/job-api
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-macOS/Linux: create/activate a Python 3.11+ virtual environment, then run `python -m pip install -r requirements.txt`, `python -m pytest -q`, `uvicorn app.main:app --reload`.
+The migration creates a local SQLite database (`jobs.db`). Keep this PowerShell window open. In **a second PowerShell window** open the same `projects/job-api` directory for the next commands.
 
-Visit http://127.0.0.1:8000/docs and http://127.0.0.1:8000/health. The latter should respond:
-
-```json
-{"status":"ok","version":"1.0"}
-```
-
-In another shell (PowerShell):
+## Lesson 1: Python and FastAPI
 
 ```powershell
-Invoke-RestMethod -Uri http://127.0.0.1:8000/jobs -Method Post -ContentType "application/json" -Body '{"prompt":"hello"}'
+Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
-Expected: a JSON job with a numeric id, the prompt, and `status: queued`.
+Expected: `status : ok` and `version : 1.0`. Study the `app/main.py` route decorator and return dictionary. Stop Uvicorn and reproduce a failed connection; restart it.
 
-## Docker
+## Lesson 2: HTTP, validation and simple authentication
 
-```bash
-docker build -t ai-job-api:local .
-docker run --rm -p 127.0.0.1:8000:8000 ai-job-api:local
-```
-
-## Understand the code
-
-- `JobCreate` validates requests. An empty prompt returns HTTP 422.
-- `POST /jobs` creates a new queued job with HTTP 201.
-- `GET /jobs/{id}` returns HTTP 404 for missing jobs.
-- `DELETE /jobs/{id}` responds HTTP 204 when deletion succeeds.
-- Tests demonstrate success and failure behavior using FastAPI's TestClient.
-
-## Follow the five lessons in order
-
-Open [AI Engineer Quest](https://bryanroubos.github.io/ai-engineer-quest/), choose **Level 01: Software Engineer Foundations**, and use the **Understand → Build → Check → Help** tabs for each lesson. The actual application lives in this directory.
-
-| Lesson | You will demonstrate |
-| --- | --- |
-| 1. Python API | Run the app, inspect health and explain decorators and data models |
-| 2. HTTP validation | Create a job, show HTTP 201, provoke 422 and 404 |
-| 3. Database fundamentals | Start PostgreSQL using Docker Compose; inspect schema; understand why the API is not persistent yet |
-| 4. Automated testing | Run pytest; break an assertion on purpose; restore a green result |
-| 5. Containers and networking | Build Docker image; publish port; inspect logs and recover from a stopped service |
-
-**Important:** The Python source excerpts in the website teach specific concepts; they are not replacements for the complete checked-in `app/main.py`. Do not overwrite the file with a shortened excerpt.
-
-For lesson 3, start Docker Desktop, then:
+The learning token is **dev-only-token**. It is not a real production authentication system. Every jobs endpoint requires this header:
 
 ```powershell
-cd projects/job-api
+$headers = @{ Authorization = "Bearer dev-only-token" }
+$job = Invoke-RestMethod -Uri http://127.0.0.1:8000/jobs -Method Post -Headers $headers -ContentType "application/json" -Body '{"prompt":"hello"}'
+$job
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/jobs/$($job.id)" -Headers $headers
+Invoke-RestMethod -Uri http://127.0.0.1:8000/jobs -Headers $headers
+```
+
+Create should return ID, prompt `hello`, and status `queued`. Check failures:
+
+```powershell
+# Without bearer header: HTTP 401
+Invoke-RestMethod -Uri http://127.0.0.1:8000/jobs
+# With token but invalid prompt: HTTP 422
+Invoke-RestMethod -Uri http://127.0.0.1:8000/jobs -Method Post -Headers $headers -ContentType "application/json" -Body '{"prompt":""}'
+# Missing resource: HTTP 404
+Invoke-RestMethod -Uri http://127.0.0.1:8000/jobs/999999 -Headers $headers
+```
+
+PowerShell usually displays a terminating error for 401/422/404. Those failures are **expected exercises**, not a broken application. The API routes are also documented at http://127.0.0.1:8000/docs.
+
+## Lesson 3: PostgreSQL, migrations and persistence
+
+Start Docker Desktop, and stop Uvicorn with Ctrl+C before switching database URLs. In PowerShell:
+
+```powershell
 docker compose up -d db
 docker compose ps
-docker compose exec -T db psql -U quest -d quest -c "SELECT id, prompt, status FROM jobs;"
+$env:DATABASE_URL = "postgresql+psycopg://quest:local-dev-only@127.0.0.1:5433/quest"
+.\.venv\Scripts\python.exe -m alembic upgrade head
 docker compose exec -T db psql -U quest -d quest -c "\d jobs"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-The PostgreSQL schema is initialized by `database/schema.sql` when the local database volume is created. The API **does not yet read or write PostgreSQL**: that integration is a later coding extension, not a completed result. Keep the database local; its credentials are for learning only.
+Create a job as in lesson 2, stop and restart Uvicorn, then query it again: **the job remains in PostgreSQL**. Stop Uvicorn when done. `migrations/versions/0001_create_jobs.py` provides the actual schema migration. To switch back to local SQLite, close/reopen PowerShell or run `Remove-Item Env:DATABASE_URL`.
 
-For lesson 5, stop any running uvicorn process before starting Docker on port 8000. In another terminal run `docker ps`, `docker logs quest-api`, and `Invoke-RestMethod http://127.0.0.1:8000/health`. Press Ctrl+C in the Docker run terminal to stop it.
+**Important:** `docker compose down` stops the database but preserves its named volume. `docker compose down -v` deliberately **deletes** the database volume and all lab data.
 
-## Known limitations and your next tasks
+## Lesson 4: automated tests, Git and CI
 
-The app uses in-memory state; **data disappears after restart**, IDs are not durable, and it has **no authentication or model invocation**. Do not deploy it publicly as a production service.
+Tests use their own temporary SQLite database, regardless of whether PostgreSQL is running:
 
-Your next tasks:
-1. Introduce PostgreSQL and Alembic migrations; test persistence after restart.
-2. Add bearer authentication and authorization checks; test 401/403.
-3. Add asynchronous worker and model backend; handle timeouts and retries.
-4. Add structured logs, Prometheus metrics and deployment manifests.
-5. Document a deliberate failure and repair in your portfolio.
+```powershell
+.\.venv\Scripts\python.exe -m pytest -v
+git status --short
+git diff --check
+```
 
-See [debugging cases](../../DEBUGGING_LABS.md) and [interview practice](../../INTERVIEW_PRACTICE.md).
+Open `tests/test_api.py`. Temporarily change an assertion expecting `422` to `200`, rerun pytest (it should fail), restore it, and rerun (green). Never commit a broken test. GitHub Actions runs the same tests and a Docker build in `.github/workflows/job-api.yml`.
+
+## Lesson 5: Docker, Linux concepts, ports and logs
+
+Stop any running Uvicorn instance before using port 8000.
+
+```powershell
+docker build -t ai-job-api:local .
+docker run --rm --name quest-api -p 127.0.0.1:8000:8000 ai-job-api:local
+```
+
+From another PowerShell window:
+
+```powershell
+docker ps
+docker logs quest-api
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+The container uses its own SQLite database and runs Alembic on startup. Its filesystem is **ephemeral** unless you attach a volume. To keep its data across restarts, run with `-v quest_api_data:/data` (Docker named volume). See `Dockerfile` and explain port mapping, container network binding, and process logging.
+
+## Level 01 completion checklist
+
+- Explain the Python `def`, request model, API decorator, authentication dependency, and status codes.
+- Demonstrate 201, 401, 404 and 422 responses.
+- Migrate and persist at least one PostgreSQL job across API restarts.
+- Show passing tests, one intentional failure and the corrected rerun.
+- Build a Docker image, get a healthy response, and diagnose a stopped container.
+
+Save **real commands, real output and what you learned**. Completing the website checkbox is self-reported, not automatic grading.
+
+## Scope and security
+
+This is a **learning project**, not production software. The shared development token is for localhost only; it has no users, JWTs or role-based authorization. There is no job worker or model inference yet. Do not expose it publicly with the default token. Dependencies are version-ranged rather than locked.
+
+Site: https://bryanroubos.github.io/ai-engineer-quest/
