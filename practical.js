@@ -11,7 +11,7 @@ const PRACTICAL_MATERIALS={
 function practicalResources(level){
 const list=PRACTICAL_MATERIALS[level]||[];
 if(!list.length)return '';
-return '<section class="focus-target"><div class="eyebrow">PRACTICAL BOOTCAMP PACKAGE</div><h3>Open a worked project or exercise</h3><div class="focus-resources">'+list.map(row=>'<a target="_blank" rel="noopener noreferrer" href="https://github.com/BryanRoubos/ai-architect-quest/blob/main/'+row[1]+'"><span><b>'+row[0]+'</b><small>'+row[2]+'</small></span><span aria-hidden="true">↗</span></a>').join('')+'</div></section>';
+return '<section class="focus-target"><div class="eyebrow">PRACTICAL BOOTCAMP PACKAGE</div><h3>Open a worked project or exercise</h3><div class="focus-resources">'+list.map(row=>'<a target="_blank" rel="noopener noreferrer" href="https://github.com/BryanRoubos/ai-engineer-quest/blob/main/'+row[1]+'"><span><b>'+row[0]+'</b><small>'+row[2]+'</small></span><span aria-hidden="true">↗</span></a>').join('')+'</div></section>';
 }
 const previousDetailWithCareer=detail;
 detail=function(){return previousDetailWithCareer()+practicalResources(current)};
