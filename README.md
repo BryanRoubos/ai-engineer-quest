@@ -17,7 +17,7 @@ Some exercises are guided starter implementations rather than complete productio
 
 ## Open the bootcamp
 
-https://bryanroubos.github.io/ai-architect-quest/
+https://bryanroubos.github.io/ai-engineer-quest/
 
 ## Run locally
 
