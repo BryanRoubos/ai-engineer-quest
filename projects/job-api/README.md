@@ -43,6 +43,34 @@ docker run --rm -p 127.0.0.1:8000:8000 ai-job-api:local
 - `DELETE /jobs/{id}` responds HTTP 204 when deletion succeeds.
 - Tests demonstrate success and failure behavior using FastAPI's TestClient.
 
+## Follow the five lessons in order
+
+Open [AI Engineer Quest](https://bryanroubos.github.io/ai-engineer-quest/), choose **Level 01: Software Engineer Foundations**, and use the **Understand → Build → Check → Help** tabs for each lesson. The actual application lives in this directory.
+
+| Lesson | You will demonstrate |
+| --- | --- |
+| 1. Python API | Run the app, inspect health and explain decorators and data models |
+| 2. HTTP validation | Create a job, show HTTP 201, provoke 422 and 404 |
+| 3. Database fundamentals | Start PostgreSQL using Docker Compose; inspect schema; understand why the API is not persistent yet |
+| 4. Automated testing | Run pytest; break an assertion on purpose; restore a green result |
+| 5. Containers and networking | Build Docker image; publish port; inspect logs and recover from a stopped service |
+
+**Important:** The Python source excerpts in the website teach specific concepts; they are not replacements for the complete checked-in `app/main.py`. Do not overwrite the file with a shortened excerpt.
+
+For lesson 3, start Docker Desktop, then:
+
+```powershell
+cd projects/job-api
+docker compose up -d db
+docker compose ps
+docker compose exec -T db psql -U quest -d quest -c "SELECT id, prompt, status FROM jobs;"
+docker compose exec -T db psql -U quest -d quest -c "\d jobs"
+```
+
+The PostgreSQL schema is initialized by `database/schema.sql` when the local database volume is created. The API **does not yet read or write PostgreSQL**: that integration is a later coding extension, not a completed result. Keep the database local; its credentials are for learning only.
+
+For lesson 5, stop any running uvicorn process before starting Docker on port 8000. In another terminal run `docker ps`, `docker logs quest-api`, and `Invoke-RestMethod http://127.0.0.1:8000/health`. Press Ctrl+C in the Docker run terminal to stop it.
+
 ## Known limitations and your next tasks
 
 The app uses in-memory state; **data disappears after restart**, IDs are not durable, and it has **no authentication or model invocation**. Do not deploy it publicly as a production service.
