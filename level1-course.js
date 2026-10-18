@@ -55,3 +55,19 @@ for(let i=0;i<5;i++){
  g.explainedBlocks=g.explanations.map((d,n)=>({label:'Concept '+(n+1),detail:d}));
  lab.troubleshoot=x.fail;lab.expected=x.concept;lab.name=LV1[i].name;
 }
+
+
+/* Authoritative excerpts from the checked-in project, never suggested as full file replacements. */
+const FINAL_EXCERPTS=[
+{file:'app/main.py',code:'from fastapi import FastAPI\nfrom pydantic import BaseModel, Field\n\napp = FastAPI(title="AI Job API", version="1.0")\nclass JobCreate(BaseModel):\n    prompt: str = Field(min_length=1, max_length=1000)\n\n@app.get("/health")\ndef health():\n    return {"status": "ok", "version": "1.0"}'},
+{file:'app/main.py',code:'def require_token(authorization: str | None = Header(default=None)):\n    expected = os.getenv("DEV_API_TOKEN", "dev-only-token")\n    if not authorization or not authorization.startswith("Bearer ") or not compare_digest(authorization[7:], expected):\n        raise HTTPException(status_code=401, detail="Valid bearer token required")\n\n@app.post("/jobs", response_model=JobOut, status_code=201, dependencies=[Depends(require_token)])\ndef create_job(payload: JobCreate, db: Session = Depends(get_db)):\n    job = Job(prompt=payload.prompt, status="queued")\n    db.add(job)\n    db.commit()\n    db.refresh(job)\n    return job'},
+{file:'migrations/versions/0001_create_jobs.py',code:'def upgrade():\n    op.create_table(\n        "jobs",\n        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),\n        sa.Column("prompt", sa.Text(), nullable=False),\n        sa.Column("status", sa.String(20), nullable=False),\n        sa.Column("created_at", sa.DateTime(), server_default=sa.func.now()),\n        sa.CheckConstraint("length(trim(prompt)) > 0", name="ck_jobs_prompt"),\n    )\n    op.create_index("ix_jobs_status", "jobs", ["status"])'},
+{file:'tests/test_api.py',code:'def test_authentication():\n    assert client.get("/jobs").status_code == 401\n    assert client.get("/jobs", headers=AUTH).status_code == 200\n\ndef test_invalid_prompt():\n    assert client.post("/jobs", headers=AUTH, json={"prompt": ""}).status_code == 422\n\ndef test_persistence_across_sessions():\n    created = client.post("/jobs", headers=AUTH, json={"prompt": "persist"})\n    with SessionLocal() as another_session:\n        assert another_session.get(models.Job, created.json()["id"]).prompt == "persist"'},
+{file:'Dockerfile',code:'FROM python:3.12-slim\nWORKDIR /code\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app ./app\nCOPY migrations ./migrations\nCOPY alembic.ini .\nUSER 10001\nENV DATABASE_URL=sqlite:////data/jobs.db\nEXPOSE 8000\nCMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]'}
+];
+for(let i=0;i<5;i++){
+ const g=GUIDED_BUILDS.find(g=>g.id==='1-'+i),v=FINAL_EXCERPTS[i];
+ g.file=v.file;g.code=v.code;
+ g.chapters[2].action=v.code;
+ g.chapters[2].body+=' This is an educational excerpt; open the actual checked-in file for the complete working implementation.';
+}
